@@ -13,8 +13,16 @@ This code is adapted from [LactoCompare](https://github.com/putonti/LactoCompare
 * [Seqtk](https://github.com/lh3/seqtk)
 * [FastANI](https://github.com/ParBLiSS/FastANI)
 
+### Packages
+* os
+* argsparse
+* random
+* glob
+* subprocess
+* pandas
 
 ### Conda Environment (for reproducibility and ease)
+If you do not want to go through the pain of downloading packages and software, you are in luck :) 
 Two .yml files are provided
 * genomics_tools.yml - All the dependencies needed to run the bioinformatics tools above 
 * r_for_stats.yml - All the dependencies needed to run the stats code 
@@ -26,13 +34,6 @@ conda env create -f r_for_stats.yml
 ```
 The pipeline script will automatically activate these environments when needed (as long as you do not change the name of the environment)
 
-### Packages
-* os
-* argsparse
-* random
-* glob
-* subprocess
-* pandas
 
 ### Running Main Pipeline
 * Running with default parameters - RUN IN SCREEN
