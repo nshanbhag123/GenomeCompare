@@ -4,7 +4,7 @@ This assumes you already have SRA fastq files downloaded for multiple strains wi
 This code is adapted from [LactoCompare](https://github.com/putonti/LactoCompare). I cleaned up this code and present it in the form of a pipeline to automate all of the steps for user-friendly access. 
 
 
-### Software
+### Bioinformatics Software
 
 * [SRA toolkit](https://github.com/ncbi/sra-tools) 
 * [Fastq-dump](https://rnnh.github.io/bioinfo-notebook/docs/fastq-dump.html)
@@ -13,6 +13,18 @@ This code is adapted from [LactoCompare](https://github.com/putonti/LactoCompare
 * [Seqtk](https://github.com/lh3/seqtk)
 * [FastANI](https://github.com/ParBLiSS/FastANI)
 
+
+### Conda Environment (for reproducibility and ease)
+Two .yml files are provided
+* genomics_tools.yml - All the dependencies needed to run the bioinformatics tools above 
+* r_for_stats.yml - All the dependencies needed to run the stats code 
+
+You can create 2 conda environments from these files using:
+```
+conda env create -f genomics_tools.yml
+conda env create -f r_for_stats.yml
+```
+The pipeline script will automatically activate these environments when needed (as long as you do not change the name of the environment)
 
 ### Packages
 * os
