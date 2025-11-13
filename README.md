@@ -27,7 +27,7 @@ This code is adapted from [LactoCompare](https://github.com/putonti/LactoCompare
  ```
  python3 lacto_pipeline.py --i 'path/to/fastq/files' --o 'path/to/output'
  ```
-Options include --subsamples (number of subsamples per strain - default 50) and --reads_in_subsample (number of reads in each subsample - default 15000, you can adjust based on coverage).
+Options include --subsamples (number of subsamples per strain - default 50), --reads_in_subsample (number of reads in each subsample - default 15000, you can adjust based on coverage), and --sequencing-type (1 = single-end reads, 2 = paired-end reads)
 
 It is recommended to specify an output folder that is empty, or to specify an output folder you would like to create.
 
@@ -46,11 +46,11 @@ Additionally, outside of the subfolders:
 * coallate_ani.csv
   * Contains the ani values for each strain (col: strain, row: ani)
  
-### Running Rscript
+### Rscript input 
 * simu_anis
   * Contains the output from the lacto_pipeline.py script (coallated anis for each strain)
 * test_anis
-  * Contains the fastani output from your own set of strains (must be the same species as your fastqs) 
+  * Contains the fastani output from your own set of strains (must be the same species as your fastqs). These will be superimposed against the kernel density plot of the bootstrapped ANI values from your input fastq files
  ```
  Rscript stats.r --simu_anis '/path/to/coallate_ani.csv' --test_anis '/path/to/test_ani.csv' --out '/path/to/output'
  ```
