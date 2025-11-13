@@ -1,4 +1,4 @@
-name: base
+name: r_for_stats_no_builds
 channels:
   - bioconda
   - conda-forge
