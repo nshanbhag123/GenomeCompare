@@ -1,11 +1,10 @@
-### Cleaning up Lacto Project
+### GenomeCompare
 
-This assumes you already have SRA fastq files downloaded for multiple strains within the same species (i.e. Lactobacillus iners UMB4066, UMB4068).
+This assumes you already have fastq files downloaded for multiple strains within the same species (i.e. Lactobacillus iners UMB4066, UMB4068).
 This code is adapted from [LactoCompare](https://github.com/putonti/LactoCompare). I cleaned up this code and present it in the form of a pipeline to automate all of the steps for user-friendly access. 
 
 
 ### Bioinformatics Software
-
 * [SRA toolkit](https://github.com/ncbi/sra-tools) 
 * [Fastq-dump](https://rnnh.github.io/bioinfo-notebook/docs/fastq-dump.html)
 * [SPAdes](https://github.com/ablab/spades)
@@ -13,7 +12,7 @@ This code is adapted from [LactoCompare](https://github.com/putonti/LactoCompare
 * [Seqtk](https://github.com/lh3/seqtk)
 * [FastANI](https://github.com/ParBLiSS/FastANI)
 
-### Packages
+### Python Packages
 * os
 * argsparse
 * random
@@ -21,11 +20,19 @@ This code is adapted from [LactoCompare](https://github.com/putonti/LactoCompare
 * subprocess
 * pandas
 
+### R Packages
+* tidyverse
+* dplyr
+* ggplot2
+* readr
+* EnvStats
+* argparse
+
 ### Conda Environment (for reproducibility and ease)
 If you do not want to go through the pain of downloading packages and software, you are in luck :). 
 Two .yml files are provided
-* genomics_tools.yml - All the dependencies needed to run the bioinformatics tools above 
-* r_for_stats.yml - All the dependencies needed to run the stats code 
+* genomics_tools.yml - All the dependencies needed to import the python packages and run bioinformatics tools above 
+* r_for_stats.yml - All the dependencies needed to run the stats code above
 
 You can create 2 conda environments from these files using:
 ```
