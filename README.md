@@ -22,7 +22,7 @@ This code is adapted from [LactoCompare](https://github.com/putonti/LactoCompare
 * pandas
 
 ### Conda Environment (for reproducibility and ease)
-If you do not want to go through the pain of downloading packages and software, you are in luck :) 
+If you do not want to go through the pain of downloading packages and software, you are in luck :). 
 Two .yml files are provided
 * genomics_tools.yml - All the dependencies needed to run the bioinformatics tools above 
 * r_for_stats.yml - All the dependencies needed to run the stats code 
