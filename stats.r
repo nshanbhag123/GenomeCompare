@@ -51,7 +51,7 @@ gg <- boot_strap_df %>% ggplot( aes(x=boot_strap)) + geom_density(fill="#69b3a2"
 gg_output <- paste(args$out, "/", "density.png", sep = "") 
 ggsave(gg_output, plot = gg, device = "png")
 
-#################################
+################################# MUST TEST AGAINST SAME SPECIES AS THE ANI DISTRIBUTION WE BUILT PREVIOUSLY
 real_ani <- read_tsv(args$test_anis, col_names = FALSE)
 col_names <- c("strain1", "strain2", "ani", "seq_fragments", "aligned")
 names(real_ani) <- col_names
