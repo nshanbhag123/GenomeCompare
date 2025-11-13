@@ -11,15 +11,60 @@ def count_reads(fastq):
     f.close()
     return (len(lines))
 
-def init_folders(output_folder, sample_no):
+def init_folders(output_folder, sample_no): #initializing 4 folders within each SRR number  
     folders = [f"{output_folder}/{sample_no}", f"{output_folder}/{sample_no}/ss", f"{output_folder}/{sample_no}/trim_ss", f"{output_folder}/{sample_no}/assemble", f"{output_folder}/{sample_no}/ani"]
     # Create paths to each directory
     for fold in folders:
         if not os.path.exists(fold):
             os.makedirs(fold)
-
-def subsample_trim_assemble(data_folder, output_folder, subsamples, no_reads_in_subsample):
+            
+def subsample_trim_assemble_single_end(data_folder, output_folder, subsamples, no_reads_in_subsample):
+    print(subsamples, no_reads_in_subsample)
     ordered_fastqs = sorted([fastq for fastq in glob.glob(f"{data_folder}/*.fastq")]) #sorted fastqs
+    print(ordered_fastqs)
+    for i in range(0, len(ordered_fastqs)):
+        fastq_path = ordered_fastqs[i]
+        file_name = os.path.basename(fastq_path) #file name
+        sample_no = file_name[0:file_name.find("_")] #sample no
+        
+        random.seed(1) #setting seed
+        no_reads_in_sample = count_reads(fastq_path) #counting number of reads
+        randomList=random.sample(range(0,no_reads_in_sample),subsamples) #50 random numbers from 0 to no_reads range - your seeds for seqtk
+
+        init_folders(output_folder, sample_no) #initialize folders
+        
+        for index,seed in enumerate(randomList): #subsampling reads 50 times
+            fastq = f"{sample_no}"
+            os.chdir(f"{output_folder}/{sample_no}/ss")
+
+            seqtk_fastq = f"seqtk sample -s{seed} {fastq_path} {no_reads_in_subsample} > {fastq}_ss{index}.fastq"
+
+            subprocess.run(f'conda run -n genomics_tools {seqtk_fastq}', shell = True) #SUBSAMPLE
+
+            bbduk = f"bbduk.sh -Xmx1G overwrite=t in={fastq}_ss{index}.fastq  out={output_folder}/{sample_no}/trim_ss/{fastq}_ss{index}_trim.fastq qtrim=rl ftl=15 ftr=135 maq=20 maxns=0 stats={output_folder}/{sample_no}/trim_ss/{sample_no}_ss{index}_trim.stats statscolumns=5 trimq=20"
+            subprocess.run(f'conda run -n genomics_tools {bbduk}', shell = True) #TRIM
+
+            os.chdir(f"{output_folder}/{sample_no}/trim_ss")
+            spades_path = "/home/nshanbhag/software/SPAdes-3.15.5-Linux/bin"
+            spades = f"spades.py --only-assembler -t 15 -s {fastq}_ss{index}_trim.fastq -o {output_folder}/{sample_no}/assemble/{sample_no}_ss{index}_assembly"
+            subprocess.run(f'conda run -n genomics_tools {spades}', shell = True) #ASSEMBLE
+
+            os.chdir(f"{output_folder}/{sample_no}/assemble")
+            copy = f"cp {sample_no}_ss{index}_assembly/contigs.fasta {sample_no}_ss{index}_contigs.fasta"
+            os.system(copy) #COPY CONTIGS.FASTAS 
+
+        remove = f"rm -r {output_folder}/{sample_no}/assemble/*assembly" #REMOVE JUNK
+        os.system(remove)
+
+        calc_anis(output_folder, sample_no) #CALC PAIRWISE ANIS AMONG SUBSAMPLE ASSEMBLIES
+
+
+
+
+def subsample_trim_assemble_paired_end(data_folder, output_folder, subsamples, no_reads_in_subsample):
+    print(subsamples, no_reads_in_subsample)
+    ordered_fastqs = sorted([fastq for fastq in glob.glob(f"{data_folder}/*.fastq")]) #sorted fastqs
+    print(ordered_fastqs)
     for i in range(0, len(ordered_fastqs), 2): #for each paired fastq file (you need to subsample 50 times)
         fastq1_path = ordered_fastqs[i] #fastq1
         fastq2_path = ordered_fastqs[i+1] #fastq2
@@ -39,16 +84,16 @@ def subsample_trim_assemble(data_folder, output_folder, subsamples, no_reads_in_
 
             seqtk_fastq1 = f"seqtk sample -s{seed} {fastq1_path} {no_reads_in_subsample} > {fastq1}_ss{index}.fastq"
             seqtk_fastq2 = f"seqtk sample -s{seed} {fastq2_path} {no_reads_in_subsample} > {fastq2}_ss{index}.fastq"
-            subprocess.run(f'conda run -n lacto {seqtk_fastq1}', shell = True) #SUBSAMPLE
-            subprocess.run(f'conda run -n lacto {seqtk_fastq2}', shell = True) #SUBSAMPLE
+            subprocess.run(f'conda run -n genomics_tools {seqtk_fastq1}', shell = True) #SUBSAMPLE
+            subprocess.run(f'conda run -n genomics_tools {seqtk_fastq2}', shell = True) #SUBSAMPLE
 
             bbduk = f"bbduk.sh -Xmx1G overwrite=t in1={fastq1}_ss{index}.fastq in2={fastq2}_ss{index}.fastq out1={output_folder}/{sample_no}/trim_ss/{fastq1}_ss{index}_trim.fastq out2={output_folder}/{sample_no}/trim_ss/{fastq2}_ss{index}_trim.fastq qtrim=rl ftl=15 ftr=135 maq=20 maxns=0 stats={output_folder}/{sample_no}/trim_ss/{sample_no}_ss{index}_trim.stats statscolumns=5 trimq=20"
-            subprocess.run(f'conda run -n lacto {bbduk}', shell = True) #TRIM
+            subprocess.run(f'conda run -n genomics_tools {bbduk}', shell = True) #TRIM
 
             os.chdir(f"{output_folder}/{sample_no}/trim_ss")
             spades_path = "/home/nshanbhag/software/SPAdes-3.15.5-Linux/bin"
-            spades = f"python3 {spades_path}/spades.py --only-assembler -t 15 -1 {fastq1}_ss{index}_trim.fastq -2 {fastq2}_ss{index}_trim.fastq -o {output_folder}/{sample_no}/assemble/{sample_no}_ss{index}_assembly"
-            os.system(spades) #ASSEMBLE
+            spades = f"spades.py --only-assembler -t 15 -1 {fastq1}_ss{index}_trim.fastq -2 {fastq2}_ss{index}_trim.fastq -o {output_folder}/{sample_no}/assemble/{sample_no}_ss{index}_assembly"
+            subprocess.run(f'conda run -n genomics_tools {spades}', shell = True) #ASSEMBLE
 
             os.chdir(f"{output_folder}/{sample_no}/assemble")
             copy = f"cp {sample_no}_ss{index}_assembly/contigs.fasta {sample_no}_ss{index}_contigs.fasta"
@@ -68,7 +113,7 @@ def calc_anis(output_folder, sample_no): #random pairwise ANI calculation among 
         pair = random.sample(assemblies,2)
 
         fastani = f"fastANI -q {pair[0]} -r {pair[1]} -o {output_folder}/{sample_no}/ani/ani{i}.out"
-        subprocess.run(f'conda run -n ani {fastani}', shell = True)
+        subprocess.run(f'conda run -n genomics_tools {fastani}', shell = True)
 
         f = open(f"{output_folder}/{sample_no}/ani/ani{i}.out")
         ani = f.readline()
@@ -95,15 +140,20 @@ def collate_anis(output_folder): #collates anis from all strain samples
 parser = argparse.ArgumentParser(description='Simulate Distribution of ANI values for a Given Species')
 parser.add_argument('--subsamples','-sub', type = int, default = 50, help='The number of subsamples per paired-end fastq')
 parser.add_argument('--reads_in_subsample','-r', type=int, default = 150000, help='Number of reads in each subsample - can adjust based on coverage')
+parser.add_argument('--sequencing_type', '-seq_type', required = True, type = int, help = "Single-end or Paired-end (single-end = 1, paired-end = 2)")
 parser.add_argument('--output', '-o', required = True, type = str, help = 'Destination path of output file')
 parser.add_argument('--input', '-i', required = True, help = 'Path to paired end fastqs folder')
 args = parser.parse_args()
 
 # START RUNNING FUNCTIONS
 if glob.glob(f"{args.input}"):
-    print(args.input, args.output, args.subsamples, args.reads_in_subsample)
-    subsample_trim_assemble(args.input, args.output, args.subsamples, args.reads_in_subsample)
-    df = collate_anis(args.output)
+    print(args.input, args.output, args.subsamples, args.reads_in_subsample, args.sequencing_type)
+    if args.sequencing_type == 1:
+        subsample_trim_assemble_single_end(args.input, args.output, args.subsamples, args.reads_in_subsample)
+        df = collate_anis(args.output)
+    if args.sequencing_type == 2:
+        subsample_trim_assemble_paired_end(args.input, args.output, args.subsamples, args.reads_in_subsample)
+        df = collate_anis(args.output)
 else:
     print("Data was not found in the given input folder. Please try again")
 
